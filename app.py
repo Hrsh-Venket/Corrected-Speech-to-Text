@@ -122,12 +122,11 @@ def everything(audio_paths):
 
     # # - https://huggingface.co/oliverguhr/spelling-correction-english-base?text=lets+do+a+comparsion
 
-with gr.Blocks() as demo:
-    gr.Markdown("Please upload an mp3 or wav file to be transcribed")
-    with gr.Row():
-        inp = gr.UploadButton()
-        out = gr.Textbox()
-    btn = gr.Button("Run")
-    btn.click(fn=everything, inputs=inp, outputs=out)
-    
+#make gradio interface
+demo = gr.Interface(
+    fn=everything,
+    inputs=gr.inputs.Audio(label="Audio"),
+    outputs=gr.outputs.Textbox(label="Output")
+)
+
 demo.launch()
