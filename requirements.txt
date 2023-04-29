@@ -37,6 +37,8 @@
 # fsspec==2023.4.0
 # gitdb==4.0.10
 # GitPython==3.1.31
+gradio==3.28.0
+gradio-client==0.1.4
 # huggingface-hub==0.13.4
 huggingsound==0.1.6
 # idna @ file:///home/linux1/recipes/ci/idna_1610986105248/work
