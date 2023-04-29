@@ -125,7 +125,7 @@ def everything(audio_paths):
 with gr.Blocks() as demo:
     gr.Markdown("Please upload an mp3 or wav file to be transcribed")
     with gr.Row():
-        inp = gr.UploadButton
+        inp = gr.UploadButton()
         out = gr.Textbox()
     btn = gr.Button("Run")
     btn.click(fn=everything, inputs=inp, outputs=out)
