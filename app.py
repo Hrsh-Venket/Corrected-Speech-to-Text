@@ -107,7 +107,7 @@ def everything(audio_paths):
                 del input[inndex]
                 inndex += 1
 
-    return (collate(input)
+    return collate(input)
 
     # # In comparison, a plain autocorrect gives this output:
 
@@ -129,3 +129,5 @@ with gr.Blocks() as demo:
         out = gr.Textbox()
     btn = gr.Button("Run")
     btn.click(fn=everything, inputs=inp, outputs=out)
+    
+demo.launch()
