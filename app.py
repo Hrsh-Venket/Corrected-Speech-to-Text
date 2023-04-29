@@ -1,4 +1,4 @@
-import streamlit as st
+import gradio as gr
 from huggingsound import SpeechRecognitionModel
 from transformers import logging
 from transformers import pipeline
@@ -8,7 +8,6 @@ unmasker = pipeline('fill-mask', model='bert-base-uncased')
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = BertModel.from_pretrained("bert-base-uncased")
 import os
-
 
 
 def levenshtein_distance(s, t):
@@ -56,71 +55,59 @@ def collate(input):
             output += str
     return output
 
-
-w2vmodel = SpeechRecognitionModel("jonatasgrosman/wav2vec2-large-xlsr-53-english")
-logging.set_verbosity_error() #change'error' to 'warning' or remove this if you want to see the warning
-
-st.write("model set")
-
-uploaded_file = st.file_uploader("Choose an .mp3 or .wav file", type=["wav", "mp3"])
-
-if uploaded_file is not None:
-    st.write("Thank you. We are now transcribing your audio")
-    # st.write(type(uploaded_file))
-
+def everything(audio_paths):
+    w2vmodel = SpeechRecognitionModel("jonatasgrosman/wav2vec2-large-xlsr-53-english")
+    logging.set_verbosity_error() #change'error' to 'warning' or remove this if you want to see the warning
     # https://huggingface.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
     # https://huggingface.co/bert-base-uncased
 
-    audio_paths = uploaded_file.read()
     transcriptions = w2vmodel.transcribe(audio_paths)
-    st.write("yes queen")
-    st.write(audio_paths.type)
-    st.write(transcriptions)
-    # input = transcriptions[0]["transcription"]
-    # input = input.split()
+    
+    input = transcriptions[0]["transcription"]
+    input = input.split()
 
-    #     #(1) is a strategy where tokens are used to determine lexicographic distance
-    #     #(2) is a strategy where replaced words 
-    # for t in range(1):
-    #     # output = [] #(2)
-    #     for i in range(len(input)):
-    #         temp = input[i]
-    #         token = tokenizer(temp)['input_ids'][1]
-    #         input[i] = "[MASK]"
-    # apiint = unmasker(' '.join(input))
-    # dist = []
-    # for r in range(5):
-    #     # if (np.abs((apiint[r]['token'] - token)) < 2): #(1)
-    #     dist.append(levenshtein_distance(temp, apiint[r]['token_str']))
-    # lindex = 0
-    # l = dist[0]
-    # for r in range(5):
-    #     if dist[r] < l:
-    #         lindex = r
+        #(1) is a strategy where tokens are used to determine lexicographic distance
+        #(2) is a strategy where replaced words 
+    for t in range(1):
+        # output = [] #(2)
+        for i in range(len(input)):
+            temp = input[i]
+            token = tokenizer(temp)['input_ids'][1]
+            input[i] = "[MASK]"
+    apiint = unmasker(' '.join(input))
+    dist = []
+    for r in range(5):
+        # if (np.abs((apiint[r]['token'] - token)) < 2): #(1)
+        dist.append(levenshtein_distance(temp, apiint[r]['token_str']))
+    lindex = 0
+    l = dist[0]
+    for r in range(5):
+        if dist[r] < l:
+            lindex = r
 
-    #         l = dist[r]
-    # if l <= 2:
-    #     input[i] = apiint[lindex]['token_str']
-    #     # output.append(apiint[lindex]['token_str']) #(2)
-    # else:
-    #     input[i] = temp
-    #     # output.append(temp) #(2)
-    # # input[i] = temp #(2)
+            l = dist[r]
+    if l <= 2:
+        input[i] = apiint[lindex]['token_str']
+        # output.append(apiint[lindex]['token_str']) #(2)
+    else:
+        input[i] = temp
+        # output.append(temp) #(2)
+    # input[i] = temp #(2)
 
-    # for t in range(1):
-    #     inndex = 1
-    #     for i in range(len(input)):
-    #         input.insert(inndex, "[MASK]")
-    #         # print(' '.join(input))
-    #         apiint = unmasker(' '.join(input))
-    #         if (apiint[0]['token'] < 1500):
-    #             input[inndex] = apiint[0]["token_str"]
-    #             inndex += 2
-    #         else:
-    #             del input[inndex]
-    #             inndex += 1
+    for t in range(1):
+        inndex = 1
+        for i in range(len(input)):
+            input.insert(inndex, "[MASK]")
+            # print(' '.join(input))
+            apiint = unmasker(' '.join(input))
+            if (apiint[0]['token'] < 1500):
+                input[inndex] = apiint[0]["token_str"]
+                inndex += 2
+            else:
+                del input[inndex]
+                inndex += 1
 
-    # st.write(collate(input))
+    return (collate(input)
 
     # # In comparison, a plain autocorrect gives this output:
 
@@ -134,3 +121,11 @@ if uploaded_file is not None:
     # # Representatives and two members of the Senate."
 
     # # - https://huggingface.co/oliverguhr/spelling-correction-english-base?text=lets+do+a+comparsion
+
+with gr.Blocks() as demo:
+    gr.Markdown("Please upload an mp3 or wav file to be transcribed")
+    with gr.Row():
+        inp = gr.UploadButton
+        out = gr.Textbox()
+    btn = gr.Button("Run")
+    btn.click(fn=everything, inputs=inp, outputs=out)
